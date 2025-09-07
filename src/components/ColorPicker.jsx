@@ -275,7 +275,7 @@ const ColorPicker = () => {
                   value={colorData ? colorData.hsl()[2] : 0}
                   onChange={(e) => {
                     if (colorData) {
-                      const newColor = chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], e.target.value).hex();
+                      const newColor = chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], parseFloat(e.target.value)).hex();
                       setCurrentColor(newColor);
                     }
                   }}
