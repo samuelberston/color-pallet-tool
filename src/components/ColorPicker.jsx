@@ -237,7 +237,10 @@ const ColorPicker = () => {
                       setCurrentColor(newColor);
                     }
                   }}
-                  className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-thumb bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500"
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-thumb"
+                  style={{
+                    background: colorData ? `linear-gradient(to right, ${chroma.hsl(0, 1, 0.5).hex()}, ${chroma.hsl(60, 1, 0.5).hex()}, ${chroma.hsl(120, 1, 0.5).hex()}, ${chroma.hsl(180, 1, 0.5).hex()}, ${chroma.hsl(240, 1, 0.5).hex()}, ${chroma.hsl(300, 1, 0.5).hex()}, ${chroma.hsl(360, 1, 0.5).hex()})` : `linear-gradient(to right, ${chroma.hsl(0, 1, 0.5).hex()}, ${chroma.hsl(60, 1, 0.5).hex()}, ${chroma.hsl(120, 1, 0.5).hex()}, ${chroma.hsl(180, 1, 0.5).hex()}, ${chroma.hsl(240, 1, 0.5).hex()}, ${chroma.hsl(300, 1, 0.5).hex()}, ${chroma.hsl(360, 1, 0.5).hex()})`
+                  }}
                   title="Hue"
                 />
               </div>
@@ -251,7 +254,7 @@ const ColorPicker = () => {
                   value={colorData ? colorData.hsl()[1] : 0}
                   onChange={(e) => {
                     if (colorData) {
-                      const newColor = chroma.hsl(colorData.hsl()[0], e.target.value, colorData.hsl()[2]).hex();
+                      const newColor = chroma.hsl(colorData.hsl()[0], parseFloat(e.target.value), colorData.hsl()[2]).hex();
                       setCurrentColor(newColor);
                     }
                   }}
