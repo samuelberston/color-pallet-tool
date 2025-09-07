@@ -169,175 +169,191 @@ const ColorPicker = () => {
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-1">Color Picker & Palette Visualizer</h1>
-          <p className="text-gray-600 text-sm">Create, explore, and manage beautiful color palettes</p>
+        <div className="text-center mb-10">
+          <h1 className="text-5xl font-bold text-gray-800 mb-2">Color Palette Pro</h1>
+          <p className="text-gray-500 text-lg">Your go-to tool for creating beautiful color palettes.</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid lg:grid-cols-3 gap-8">
           {/* Color Picker Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-4">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <PaletteIcon className="w-5 h-5" />
+          <div className="bg-white rounded-2xl shadow-lg p-6">
+            <h2 className="text-2xl font-semibold text-gray-800 mb-5 flex items-center gap-3">
+              <PaletteIcon className="w-6 h-6" />
               Color Picker
             </h2>
 
             {/* Color Display */}
             <div
-              className="w-full h-20 rounded-lg mb-4 flex items-center justify-center text-lg font-mono border-2 border-gray-200 shadow-inner transition-all duration-300"
+              className="w-full h-32 rounded-xl mb-4 flex items-center justify-center text-2xl font-mono border-2 border-gray-200 shadow-inner transition-all duration-300"
               style={{ backgroundColor: currentColor, color: textColor }}
             >
               {currentColor.toUpperCase()}
             </div>
 
-            {/* Compact Color Picker */}
-            <div className="mb-4">
-              <input
-                type="color"
-                value={currentColor}
-                onChange={(e) => setCurrentColor(e.target.value)}
-                className="h-12 w-full rounded-lg border-2 border-gray-300 cursor-pointer"
-              />
-            </div>
-
             {/* Color Information */}
             {colorData && (
-              <div className="grid grid-cols-3 gap-2 p-3 bg-gray-50 rounded-lg mb-4 text-xs">
-                <div>
-                  <div className="text-gray-600">RGB</div>
-                  <div className="font-mono">{colorData.rgb().map(v => Math.round(v)).join(', ')}</div>
-                </div>
-                <div>
-                  <div className="text-gray-600">HSL</div>
-                  <div className="font-mono">
-                    {(() => {
-                      const [h, s, l] = colorData.hsl();
-                      return `${isNaN(h) ? 0 : Math.round(h)}, ${Math.round(s * 100)}, ${Math.round(l * 100)}`;
-                    })()}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-gray-600">Hex</div>
-                  <div className="flex gap-1 items-center">
-                    <span className="font-mono">{currentColor.toUpperCase()}</span>
+              <div className="space-y-3 mb-4">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-600">HEX</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-gray-800">{currentColor.toUpperCase()}</span>
                     <button
                       onClick={() => copyToClipboard(currentColor)}
-                      className="p-1 text-gray-500 hover:text-gray-800"
+                      className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded-md"
                       title="Copy hex code"
                     >
-                      {copiedColor === currentColor ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      {copiedColor === currentColor ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-600">RGB</span>
+                  <span className="font-mono text-gray-800">{colorData.rgb().map(v => Math.round(v)).join(', ')}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm font-medium text-gray-600">HSL</span>
+                  <span className="font-mono text-gray-800">
+                    {(() => {
+                      const [h, s, l] = colorData.hsl();
+                      return `${isNaN(h) ? 0 : Math.round(h)}, ${Math.round(s * 100)}%, ${Math.round(l * 100)}%`;
+                    })()}
+                  </span>
+                </div>
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-2 gap-2 mb-4">
-              <button
-                onClick={addToPalette}
-                className="flex items-center justify-center gap-1 p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
-                title="Add current color to palette (Ctrl+A)"
-              >
-                <Plus className="w-3 h-3" />
-                Add
-              </button>
-              <button
-                onClick={generateRandomColor}
-                className="flex items-center justify-center gap-1 p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                title="Generate random color (Ctrl+R)"
-              >
-                <Shuffle className="w-3 h-3" />
-                Random
-              </button>
+            {/* HSL Sliders */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600">Hue</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={colorData ? Math.round(colorData.hsl()[0] || 0) : 0}
+                  onChange={(e) => {
+                    if (colorData) {
+                      const newColor = chroma.hsl(e.target.value, colorData.hsl()[1], colorData.hsl()[2]).hex();
+                      setCurrentColor(newColor);
+                    }
+                  }}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-thumb bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500"
+                  title="Hue"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600">Saturation</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={colorData ? colorData.hsl()[1] : 0}
+                  onChange={(e) => {
+                    if (colorData) {
+                      const newColor = chroma.hsl(colorData.hsl()[0], e.target.value, colorData.hsl()[2]).hex();
+                      setCurrentColor(newColor);
+                    }
+                  }}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-thumb"
+                  style={{
+                    background: colorData ? `linear-gradient(to right, ${chroma.hsl(colorData.hsl()[0], 0, colorData.hsl()[2]).hex()}, ${chroma.hsl(colorData.hsl()[0], 1, colorData.hsl()[2]).hex()})` : '#ccc'
+                  }}
+                  title="Saturation"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-600">Lightness</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={colorData ? colorData.hsl()[2] : 0}
+                  onChange={(e) => {
+                    if (colorData) {
+                      const newColor = chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], e.target.value).hex();
+                      setCurrentColor(newColor);
+                    }
+                  }}
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer slider-thumb"
+                  style={{
+                    background: colorData ? `linear-gradient(to right, black, ${chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], 0.5).hex()}, white)` : '#ccc'
+                  }}
+                  title="Lightness"
+                />
+              </div>
             </div>
 
-            {/* Manual Color Input */}
-            {showColorInput ? (
-              <form onSubmit={handleColorInput} className="mb-4 p-3 bg-gray-50 rounded-lg">
-                <div className="flex gap-1">
-                  <input
-                    type="text"
-                    value={colorInput}
-                    onChange={(e) => setColorInput(e.target.value)}
-                    placeholder="#FF0000 or rgb(255,0,0)"
-                    className="flex-1 p-2 border border-gray-300 rounded text-sm"
-                    autoFocus
-                  />
+            {/* Quick Actions & Manual Input */}
+            <div className="space-y-4">
+              {/* Quick Actions & Manual Input */}
+              <div className="bg-gray-50 p-3 rounded-lg space-y-3">
+                <div className="grid grid-cols-2 gap-2">
                   <button
-                    type="submit"
-                    className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors text-sm"
+                    onClick={addToPalette}
+                    className="w-full flex items-center justify-center gap-2 p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    title="Add current color to palette (Ctrl+A)"
                   >
-                    Apply
+                    <Plus className="w-4 h-4" />
+                    Add to Palette
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setShowColorInput(false)}
-                    className="px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors text-sm"
+                    onClick={generateRandomColor}
+                    className="w-full flex items-center justify-center gap-2 p-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium"
+                    title="Generate random color (Ctrl+R)"
                   >
-                    Cancel
+                    <Shuffle className="w-4 h-4" />
+                    Random
                   </button>
                 </div>
-              </form>
-            ) : (
-              <button
-                onClick={() => setShowColorInput(true)}
-                className="w-full p-2 mb-4 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 hover:text-gray-800 transition-colors text-sm"
-              >
-                Enter Color Manually
-              </button>
-            )}
-
-            {/* Color Harmony Generator */}
-            <div>
-              <h3 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-1">
-                <PaletteIcon className="w-4 h-4" />
-                Color Harmonies
-              </h3>
-              <div className="grid grid-cols-2 gap-1">
-                <button
-                  onClick={() => generateHarmony('complementary')}
-                  className="p-2 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors text-xs"
-                  title="Two colors opposite on the color wheel"
-                >
-                  Complementary
-                </button>
-                <button
-                  onClick={() => generateHarmony('analogous')}
-                  className="p-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-xs"
-                  title="Colors adjacent on the color wheel"
-                >
-                  Analogous
-                </button>
-                <button
-                  onClick={() => generateHarmony('triadic')}
-                  className="p-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors text-xs"
-                  title="Three colors evenly spaced on the color wheel"
-                >
-                  Triadic
-                </button>
-                <button
-                  onClick={() => generateHarmony('split-complementary')}
-                  className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors text-xs"
-                  title="Base color plus two adjacent to its complement"
-                >
-                  Split-Comp
-                </button>
-                <button
-                  onClick={() => generateHarmony('tetradic')}
-                  className="p-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs"
-                  title="Four colors forming a rectangle on the color wheel"
-                >
-                  Tetradic
-                </button>
-                <button
-                  onClick={() => generateHarmony('monochromatic')}
-                  className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-xs"
-                  title="Variations of a single hue"
-                >
-                  Monochromatic
-                </button>
+                {showColorInput ? (
+                  <form onSubmit={handleColorInput}>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={colorInput}
+                        onChange={(e) => setColorInput(e.target.value)}
+                        placeholder="e.g. #FF0000"
+                        className="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        autoFocus
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <button
+                    onClick={() => setShowColorInput(true)}
+                    className="w-full p-2 border-2 border-dashed border-gray-300 text-gray-600 rounded-lg hover:border-gray-400 hover:text-gray-800 transition-colors text-sm"
+                  >
+                    Enter Color Manually
+                  </button>
+                )}
               </div>
+
+              {/* Color Harmony Generator */}
+              <details className="bg-gray-50 p-3 rounded-lg">
+                <summary className="cursor-pointer text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <PaletteIcon className="w-5 h-5" />
+                  Color Harmonies
+                </summary>
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  {['complementary', 'analogous', 'triadic', 'split-complementary', 'tetradic', 'monochromatic'].map(type => (
+                    <button
+                      key={type}
+                      onClick={() => generateHarmony(type)}
+                      className="p-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-xs capitalize"
+                    >
+                      {type.replace('-', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </details>
             </div>
           </div>
 
@@ -347,75 +363,83 @@ const ColorPicker = () => {
               <h2 className="text-xl font-semibold text-gray-800">Current Palette</h2>
               <button
                 onClick={() => setShowSaveDialog(true)}
-                className="flex items-center gap-1 px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
               >
-                <Download className="w-3 h-3" />
-                Save
+                <Download className="w-4 h-4" />
+                Save Palette
               </button>
             </div>
 
             {/* Current Palette */}
             <div className="grid grid-cols-5 gap-3 mb-4">
               {palette.map((color, index) => (
-                <div key={index} className="group relative">
+                <div key={index} className="group relative aspect-square">
                   <div
-                    className="aspect-square rounded-lg cursor-pointer border-2 border-gray-200 hover:border-gray-400 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
+                    className="w-full h-full rounded-lg cursor-pointer border-2 border-gray-200 transition-all duration-200 shadow-sm hover:shadow-md"
                     style={{ backgroundColor: color }}
                     onClick={() => setCurrentColor(color)}
                     title={`Click to select ${color}`}
                   />
-                  <button
-                    onClick={() => removeFromPalette(index)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-lg"
-                    title="Remove color"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                  <div className="text-xs text-center mt-1 font-mono text-gray-600">{color}</div>
+                  <div className="absolute top-0 right-0 flex translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    <button
+                      onClick={() => copyToClipboard(color)}
+                      className="w-6 h-6 bg-gray-700 hover:bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg"
+                      title="Copy color"
+                    >
+                      {copiedColor === color ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    </button>
+                    <button
+                      onClick={() => removeFromPalette(index)}
+                      className="w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg"
+                      title="Remove color"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
               ))}
               {palette.length < 10 && (
-                <div
+                <button
                   className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                   onClick={addToPalette}
                   title="Add current color to palette"
                 >
                   <Plus className="w-6 h-6 text-gray-400" />
-                </div>
+                </button>
               )}
             </div>
 
             {/* Saved Palettes */}
-            <h3 className="text-sm font-semibold text-gray-800 mb-3">Saved Palettes</h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <h3 className="text-xl font-semibold text-gray-800 mb-3">Saved Palettes</h3>
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
               {savedPalettes.map((savedPalette, index) => (
-                <div key={index} className="group flex items-center gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div className="flex gap-1">
-                    {savedPalette.colors.map((color, colorIndex) => (
-                      <div
-                        key={colorIndex}
-                        className="w-4 h-4 rounded border border-gray-200"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
-                  <div className="flex-1">
+                <div key={index} className="group flex items-center justify-between gap-2 p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {savedPalette.colors.slice(0, 5).map((color, colorIndex) => (
+                        <div
+                          key={colorIndex}
+                          className="w-6 h-6 rounded-full border-2 border-white group-hover:border-gray-100"
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
                     <div className="font-medium text-gray-800 text-sm">{savedPalette.name}</div>
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => loadPalette(savedPalette)}
-                      className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                      className="p-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
                       title="Load palette"
                     >
-                      <Upload className="w-3 h-3" />
+                      <Upload className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => deleteSavedPalette(index)}
-                      className="p-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                      className="p-1.5 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors"
                       title="Delete palette"
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -424,7 +448,7 @@ const ColorPicker = () => {
           </div>
 
           {/* Image Color Extractor Section */}
-          <div className="bg-white rounded-2xl shadow-lg p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-6">
             <ImageColorExtractor onPaletteReady={handlePaletteFromImage} />
           </div>
         </div>

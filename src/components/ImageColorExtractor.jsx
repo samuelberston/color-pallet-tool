@@ -88,9 +88,9 @@ const ImageColorExtractor = ({ onPaletteReady }) => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-        <ImageIcon className="w-5 h-5" />
-        Image Color Extractor
+      <h2 className="text-2xl font-semibold text-gray-800 mb-5 flex items-center gap-3">
+        <ImageIcon className="w-6 h-6" />
+        Image Extractor
       </h2>
 
       <div className="mb-4">
