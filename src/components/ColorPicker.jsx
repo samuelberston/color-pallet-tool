@@ -167,7 +167,7 @@ const ColorPicker = () => {
   const colorData = chroma.valid(currentColor) ? chroma(currentColor) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+    <>
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold text-gray-800 mb-1">Color Picker & Palette Visualizer</h1>
@@ -181,9 +181,9 @@ const ColorPicker = () => {
               <PaletteIcon className="w-5 h-5" />
               Color Picker
             </h2>
-            
+
             {/* Color Display */}
-            <div 
+            <div
               className="w-full h-20 rounded-lg mb-4 flex items-center justify-center text-lg font-mono border-2 border-gray-200 shadow-inner transition-all duration-300"
               style={{ backgroundColor: currentColor, color: textColor }}
             >
@@ -192,69 +192,12 @@ const ColorPicker = () => {
 
             {/* Compact Color Picker */}
             <div className="mb-4">
-              <div className="grid grid-cols-5 gap-2 mb-4">
-                {/* Color Picker Input */}
-                <input
-                  type="color"
-                  value={currentColor}
-                  onChange={(e) => setCurrentColor(e.target.value)}
-                  className="col-span-2 h-12 w-full rounded-lg border-2 border-gray-300 cursor-pointer"
-                />
-                
-                {/* HSL Sliders */}
-                <div className="col-span-3 space-y-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="360"
-                    value={colorData ? Math.round(colorData.hsl()[0] || 0) : 0}
-                    onChange={(e) => {
-                      if (colorData) {
-                        const newColor = chroma.hsl(e.target.value, colorData.hsl()[1], colorData.hsl()[2]).hex();
-                        setCurrentColor(newColor);
-                      }
-                    }}
-                    className="w-full h-3 rounded-lg appearance-none bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-cyan-500 via-blue-500 via-purple-500 to-red-500"
-                    title="Hue"
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={colorData ? colorData.hsl()[1] : 0}
-                    onChange={(e) => {
-                      if (colorData) {
-                        const newColor = chroma.hsl(colorData.hsl()[0], e.target.value, colorData.hsl()[2]).hex();
-                        setCurrentColor(newColor);
-                      }
-                    }}
-                    className="w-full h-3 rounded-lg appearance-none"
-                    style={{
-                      background: colorData ? `linear-gradient(to right, ${chroma.hsl(colorData.hsl()[0], 0, colorData.hsl()[2]).hex()}, ${chroma.hsl(colorData.hsl()[0], 1, colorData.hsl()[2]).hex()})` : '#ccc'
-                    }}
-                    title="Saturation"
-                  />
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={colorData ? colorData.hsl()[2] : 0}
-                    onChange={(e) => {
-                      if (colorData) {
-                        const newColor = chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], e.target.value).hex();
-                        setCurrentColor(newColor);
-                      }
-                    }}
-                    className="w-full h-3 rounded-lg appearance-none"
-                    style={{
-                      background: colorData ? `linear-gradient(to right, black, ${chroma.hsl(colorData.hsl()[0], colorData.hsl()[1], 0.5).hex()}, white)` : '#ccc'
-                    }}
-                    title="Lightness"
-                  />
-                </div>
-              </div>
+              <input
+                type="color"
+                value={currentColor}
+                onChange={(e) => setCurrentColor(e.target.value)}
+                className="h-12 w-full rounded-lg border-2 border-gray-300 cursor-pointer"
+              />
             </div>
 
             {/* Color Information */}
@@ -267,7 +210,10 @@ const ColorPicker = () => {
                 <div>
                   <div className="text-gray-600">HSL</div>
                   <div className="font-mono">
-                    {colorData.hsl().map(v => (isNaN(v) ? '0' : Math.round(v))).join(', ')}
+                    {(() => {
+                      const [h, s, l] = colorData.hsl();
+                      return `${isNaN(h) ? 0 : Math.round(h)}, ${Math.round(s * 100)}, ${Math.round(l * 100)}`;
+                    })()}
                   </div>
                 </div>
                 <div>
@@ -296,7 +242,7 @@ const ColorPicker = () => {
                 <Plus className="w-3 h-3" />
                 Add
               </button>
-               <button
+              <button
                 onClick={generateRandomColor}
                 className="flex items-center justify-center gap-1 p-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
                 title="Generate random color (Ctrl+R)"
@@ -362,36 +308,36 @@ const ColorPicker = () => {
                   title="Colors adjacent on the color wheel"
                 >
                   Analogous
-              </button>
-              <button
-                onClick={() => generateHarmony('triadic')}
+                </button>
+                <button
+                  onClick={() => generateHarmony('triadic')}
                   className="p-2 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors text-xs"
                   title="Three colors evenly spaced on the color wheel"
-              >
-                Triadic
-              </button>
-              <button
-                onClick={() => generateHarmony('split-complementary')}
+                >
+                  Triadic
+                </button>
+                <button
+                  onClick={() => generateHarmony('split-complementary')}
                   className="p-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors text-xs"
                   title="Base color plus two adjacent to its complement"
-              >
-                Split-Comp
-              </button>
-              <button
-                onClick={() => generateHarmony('tetradic')}
+                >
+                  Split-Comp
+                </button>
+                <button
+                  onClick={() => generateHarmony('tetradic')}
                   className="p-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs"
                   title="Four colors forming a rectangle on the color wheel"
-              >
-                Tetradic
-              </button>
-              <button
-                onClick={() => generateHarmony('monochromatic')}
+                >
+                  Tetradic
+                </button>
+                <button
+                  onClick={() => generateHarmony('monochromatic')}
                   className="p-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-xs"
                   title="Variations of a single hue"
-              >
-                Monochromatic
-              </button>
-            </div>
+                >
+                  Monochromatic
+                </button>
+              </div>
             </div>
           </div>
 
@@ -409,7 +355,7 @@ const ColorPicker = () => {
             </div>
 
             {/* Current Palette */}
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-5 gap-3 mb-4">
               {palette.map((color, index) => (
                 <div key={index} className="group relative">
                   <div
@@ -420,44 +366,23 @@ const ColorPicker = () => {
                   />
                   <button
                     onClick={() => removeFromPalette(index)}
-                    className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-lg"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-lg"
                     title="Remove color"
                   >
-                    <Trash2 className="w-2 h-2" />
-                  </button>
-                  <button
-                    onClick={() => copyToClipboard(color)}
-                    className="absolute -top-1 -left-1 w-5 h-5 bg-gray-600 hover:bg-gray-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center shadow-lg"
-                    title="Copy color"
-                  >
-                    {copiedColor === color ? <Check className="w-2 h-2" /> : <Copy className="w-2 h-2" />}
+                    <Trash2 className="w-3 h-3" />
                   </button>
                   <div className="text-xs text-center mt-1 font-mono text-gray-600">{color}</div>
                 </div>
               ))}
-              {palette.length < 8 && (
-                <div 
+              {palette.length < 10 && (
+                <div
                   className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
                   onClick={addToPalette}
                   title="Add current color to palette"
                 >
-                  <Plus className="w-4 h-4 text-gray-400" />
+                  <Plus className="w-6 h-6 text-gray-400" />
                 </div>
               )}
-            </div>
-
-            {/* Large Palette Preview */}
-            <div className="h-16 rounded-lg overflow-hidden mb-4 border-2 border-gray-200">
-              <div className="flex h-full">
-                {palette.map((color, index) => (
-                  <div
-                    key={index}
-                    className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
-                    style={{ backgroundColor: color }}
-                    onClick={() => setCurrentColor(color)}
-                  />
-                ))}
-              </div>
             </div>
 
             {/* Saved Palettes */}
@@ -561,7 +486,7 @@ const ColorPicker = () => {
           <div>Ctrl+C: Copy • Ctrl+S: Save • Ctrl+R: Random</div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
