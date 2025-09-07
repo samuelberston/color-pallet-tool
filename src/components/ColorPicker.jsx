@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Copy, Trash2, Palette, Plus, Download, Upload } from 'lucide-react';
+import React, { useState } from 'react';
+import { Copy, Trash2, Palette as PaletteIcon, Plus, Download, Upload } from 'lucide-react';
+import { SketchPicker } from 'react-color';
+import chroma from 'chroma-js';
+import ImageColorExtractor from './ImageColorExtractor';
 
 const ColorPicker = () => {
   const [currentColor, setCurrentColor] = useState('#3b82f6');
-  const [hexInput, setHexInput] = useState('#3b82f6');
   const [palette, setPalette] = useState(['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6']);
   const [savedPalettes, setSavedPalettes] = useState([
     { name: 'Ocean Blues', colors: ['#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e'] },
@@ -12,48 +14,8 @@ const ColorPicker = () => {
   const [paletteName, setPaletteName] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
 
-  // Convert hex to RGB
-  const hexToRgb = (hex) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-
-  // Convert RGB to HSL for better color manipulation
-  const rgbToHsl = (r, g, b) => {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h, s, l = (max + min) / 2;
-
-    if (max === min) {
-      h = s = 0;
-    } else {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
-    }
-    return [h * 360, s * 100, l * 100];
-  };
-
-  // Update hex input when color changes
-  useEffect(() => {
-    setHexInput(currentColor);
-  }, [currentColor]);
-
-  // Handle hex input change
-  const handleHexChange = (value) => {
-    setHexInput(value);
-    if (/^#[0-9A-F]{6}$/i.test(value)) {
-      setCurrentColor(value);
-    }
+  const handleColorChange = (color) => {
+    setCurrentColor(color.hex);
   };
 
   // Copy color to clipboard
@@ -73,89 +35,39 @@ const ColorPicker = () => {
     setPalette(palette.filter((_, i) => i !== index));
   };
 
-  // Generate complementary colors
-  const generateComplementary = () => {
-    const rgb = hexToRgb(currentColor);
-    if (!rgb) return;
-    
-    const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    const complementaryH = (h + 180) % 360;
-    
-    const hslToRgb = (h, s, l) => {
-      h /= 360; s /= 100; l /= 100;
-      const hue2rgb = (p, q, t) => {
-        if (t < 0) t += 1;
-        if (t > 1) t -= 1;
-        if (t < 1/6) return p + (q - p) * 6 * t;
-        if (t < 1/2) return q;
-        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-        return p;
-      };
-      
-      if (s === 0) {
-        return [l, l, l];
-      } else {
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        return [
-          hue2rgb(p, q, h + 1/3),
-          hue2rgb(p, q, h),
-          hue2rgb(p, q, h - 1/3)
-        ];
+  // Generate color harmonies using chroma-js
+  const generateHarmony = (type) => {
+    try {
+      let colors;
+      const base = chroma(currentColor);
+      switch (type) {
+        case 'complementary':
+          colors = [base.hex(), base.set('hsl.h', '+180').hex()];
+          break;
+        case 'analogous':
+          colors = [base.set('hsl.h', '-30').hex(), base.hex(), base.set('hsl.h', '+30').hex()];
+          break;
+        case 'triadic':
+          colors = [base.hex(), base.set('hsl.h', '+120').hex(), base.set('hsl.h', '+240').hex()];
+          break;
+        case 'split-complementary':
+          colors = [base.hex(), base.set('hsl.h', '+150').hex(), base.set('hsl.h', '+210').hex()];
+          break;
+        case 'tetradic':
+          colors = [base.hex(), base.set('hsl.h', '+90').hex(), base.set('hsl.h', '+180').hex(), base.set('hsl.h', '+270').hex()];
+          break;
+        case 'monochromatic':
+          colors = chroma.scale([base.darken(2), base, base.brighten(2)]).mode('lch').colors(5);
+          break;
+        default:
+          colors = [currentColor];
       }
-    };
-    
-    const [r, g, b] = hslToRgb(complementaryH, s, l);
-    const compHex = '#' + Math.round(r * 255).toString(16).padStart(2, '0') + 
-                          Math.round(g * 255).toString(16).padStart(2, '0') + 
-                          Math.round(b * 255).toString(16).padStart(2, '0');
-    
-    setPalette([currentColor, compHex]);
-  };
-
-  // Generate analogous colors
-  const generateAnalogous = () => {
-    const rgb = hexToRgb(currentColor);
-    if (!rgb) return;
-    
-    const [h, s, l] = rgbToHsl(rgb.r, rgb.g, rgb.b);
-    const analogous = [];
-    
-    for (let i = -60; i <= 60; i += 30) {
-      const newH = (h + i + 360) % 360;
-      const [r, g, b] = hslToRgb(newH, s, l);
-      const hex = '#' + Math.round(r * 255).toString(16).padStart(2, '0') + 
-                        Math.round(g * 255).toString(16).padStart(2, '0') + 
-                        Math.round(b * 255).toString(16).padStart(2, '0');
-      analogous.push(hex);
-    }
-    
-    setPalette(analogous);
-  };
-
-  const hslToRgb = (h, s, l) => {
-    h /= 360; s /= 100; l /= 100;
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1/6) return p + (q - p) * 6 * t;
-      if (t < 1/2) return q;
-      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-      return p;
-    };
-    
-    if (s === 0) {
-      return [l, l, l];
-    } else {
-      const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-      const p = 2 * l - q;
-      return [
-        hue2rgb(p, q, h + 1/3),
-        hue2rgb(p, q, h),
-        hue2rgb(p, q, h - 1/3)
-      ];
+      setPalette(colors);
+    } catch (error) {
+      console.error("Invalid color for harmony generation:", error);
     }
   };
+
 
   // Save current palette
   const savePalette = () => {
@@ -176,9 +88,16 @@ const ColorPicker = () => {
   const deleteSavedPalette = (index) => {
     setSavedPalettes(savedPalettes.filter((_, i) => i !== index));
   };
+  
+  const handlePaletteFromImage = (newPalette) => {
+    setPalette(newPalette);
+    if (newPalette.length > 0) {
+      setCurrentColor(newPalette[0]);
+    }
+  };
 
-  const rgb = hexToRgb(currentColor);
-  const textColor = rgb && (rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114) > 186 ? '#000000' : '#ffffff';
+  const textColor = chroma(currentColor).luminance() > 0.5 ? '#000000' : '#ffffff';
+  const colorData = chroma.valid(currentColor) ? chroma(currentColor) : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
@@ -192,7 +111,7 @@ const ColorPicker = () => {
           {/* Color Picker Section */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-              <Palette className="w-6 h-6" />
+              <PaletteIcon className="w-6 h-6" />
               Color Picker
             </h2>
             
@@ -204,55 +123,47 @@ const ColorPicker = () => {
               {currentColor.toUpperCase()}
             </div>
 
-            {/* HTML Color Input */}
+            {/* React Color SketchPicker */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Color Picker</label>
-              <input
-                type="color"
-                value={currentColor}
-                onChange={(e) => setCurrentColor(e.target.value)}
-                className="w-full h-12 rounded-lg cursor-pointer border-2 border-gray-200"
+              <SketchPicker
+                color={currentColor}
+                onChangeComplete={handleColorChange}
+                width="100%"
+                className="shadow-none border border-gray-200"
               />
             </div>
 
-            {/* Hex Input */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">Hex Code</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={hexInput}
-                  onChange={(e) => handleHexChange(e.target.value)}
-                  className="flex-1 p-3 border border-gray-300 rounded-lg font-mono"
-                  placeholder="#000000"
-                />
-                <button
-                  onClick={() => copyToClipboard(currentColor)}
-                  className="px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
             {/* Color Information */}
-            {rgb && (
+            {colorData && (
               <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg mb-6">
                 <div>
                   <div className="text-sm text-gray-600">RGB</div>
-                  <div className="font-mono text-sm">{rgb.r}, {rgb.g}, {rgb.b}</div>
+                  <div className="font-mono text-sm">{colorData.rgb().join(', ')}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600">HSL</div>
                   <div className="font-mono text-sm">
-                    {rgbToHsl(rgb.r, rgb.g, rgb.b).map(v => Math.round(v)).join(', ')}
+                    {colorData.hsl().map(v => (isNaN(v) ? '0' : Math.round(v))).join(', ')}
+                  </div>
+                </div>
+                 <div className="col-span-2">
+                  <div className="text-sm text-gray-600">Hex Code</div>
+                  <div className="flex gap-2 items-center">
+                    <span className="font-mono text-sm">{currentColor.toUpperCase()}</span>
+                    <button
+                      onClick={() => copyToClipboard(currentColor)}
+                      className="p-1 text-gray-500 hover:text-gray-800"
+                      title="Copy hex code"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
             )}
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               <button
                 onClick={addToPalette}
                 className="flex items-center justify-center gap-2 p-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
@@ -260,19 +171,44 @@ const ColorPicker = () => {
                 <Plus className="w-4 h-4" />
                 Add to Palette
               </button>
-              <button
-                onClick={generateComplementary}
+               <button
+                onClick={() => generateHarmony('complementary')}
                 className="p-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
               >
                 Complementary
               </button>
               <button
-                onClick={generateAnalogous}
-                className="p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors col-span-2"
+                onClick={() => generateHarmony('analogous')}
+                className="p-3 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors"
               >
-                Generate Analogous
+                Analogous
+              </button>
+              <button
+                onClick={() => generateHarmony('triadic')}
+                className="p-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+              >
+                Triadic
+              </button>
+              <button
+                onClick={() => generateHarmony('split-complementary')}
+                className="p-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+              >
+                Split-Comp
+              </button>
+              <button
+                onClick={() => generateHarmony('tetradic')}
+                className="p-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Tetradic
+              </button>
+              <button
+                onClick={() => generateHarmony('monochromatic')}
+                className="p-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors col-span-2"
+              >
+                Monochromatic
               </button>
             </div>
+            <ImageColorExtractor onPaletteReady={handlePaletteFromImage} />
           </div>
 
           {/* Palette Visualization Section */}
