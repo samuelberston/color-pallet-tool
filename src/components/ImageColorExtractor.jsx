@@ -87,9 +87,9 @@ const ImageColorExtractor = ({ onPaletteReady }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 mt-8">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 flex items-center gap-2">
-        <ImageIcon className="w-6 h-6" />
+    <div>
+      <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <ImageIcon className="w-5 h-5" />
         Image Color Extractor
       </h2>
 
@@ -101,7 +101,7 @@ const ImageColorExtractor = ({ onPaletteReady }) => {
         )}
         
         <div
-          className={`cursor-pointer w-full inline-flex items-center justify-center rounded-xl border-2 border-dashed px-6 py-10 text-center transition-all duration-200 ${
+          className={`cursor-pointer w-full inline-flex items-center justify-center rounded-xl border-2 border-dashed px-4 py-6 text-center transition-all duration-200 ${
             isDragOver 
               ? 'border-blue-400 bg-blue-50' 
               : 'border-gray-300 bg-gray-50 hover:border-gray-400 hover:bg-gray-100'
@@ -113,9 +113,9 @@ const ImageColorExtractor = ({ onPaletteReady }) => {
         >
           <div className="text-center">
             {isLoading ? (
-              <div className="animate-spin mx-auto h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+              <div className="animate-spin mx-auto h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
             ) : (
-              <Upload className={`mx-auto h-12 w-12 ${
+              <Upload className={`mx-auto h-8 w-8 ${
                 isDragOver ? 'text-blue-500' : 'text-gray-400'
               }`} />
             )}
